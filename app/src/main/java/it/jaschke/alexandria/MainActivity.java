@@ -1,5 +1,6 @@
 package it.jaschke.alexandria;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -178,5 +179,33 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         super.onBackPressed();
     }
 
+    //codes for barcode scanner
+    public void scanQRCode(View v) {
+        IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
+        integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        IntentResult result =
+                IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        if (result != null) {
+            String contents = result.getContents();
+            if (contents != null) {
+                showDialog(R.string.result_succeeded, result.toString());
+            } else {
+                showDialog(R.string.result_failed,
+                        getString(R.string.result_failed_why));
+            }
+        }
+    }
+
+    private void showDialog(int title, CharSequence message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton(R.string.ok_button, null);
+        builder.show();
+    }
 
 }
