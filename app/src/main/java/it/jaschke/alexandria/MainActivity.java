@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import it.jaschke.alexandria.api.Callback;
+import it.jaschke.alexandria.services.BookService;
 
 
 public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, Callback {
@@ -34,6 +35,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     private CharSequence title;
     public static boolean IS_TABLET = false;
     private BroadcastReceiver messageReciever;
+    private Toast toast;
 
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
@@ -58,7 +60,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         // Set up the drawer.
         navigationDrawerFragment.setUp(R.id.navigation_drawer,
-                    (DrawerLayout) findViewById(R.id.drawer_layout));
+                (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
     @Override
@@ -156,7 +158,8 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getStringExtra(MESSAGE_KEY)!=null){
-                Toast.makeText(MainActivity.this, intent.getStringExtra(MESSAGE_KEY), Toast.LENGTH_LONG).show();
+                toast = Toast.makeText(MainActivity.this, intent.getStringExtra(MESSAGE_KEY), Toast.LENGTH_LONG);
+                toast.show();
             }
         }
     }
@@ -192,7 +195,17 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         if (result != null) {
             String contents = result.getContents();
             if (contents != null) {
-                showDialog(R.string.result_succeeded, result.toString());
+                //Once we have an ISBN, start a book intent
+                Intent bookIntent = new Intent(this, BookService.class);
+                bookIntent.putExtra(BookService.EAN, contents);
+                bookIntent.setAction(BookService.FETCH_BOOK);
+                this.startService(bookIntent);
+
+                if (toast==null){
+                    toast = Toast.makeText(this,getResources().getString(R.string.found),Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+
             } else {
                 showDialog(R.string.result_failed,
                         getString(R.string.result_failed_why));
